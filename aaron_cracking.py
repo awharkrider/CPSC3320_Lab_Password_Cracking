@@ -2,7 +2,6 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 import argparse
-import logging
 import time
 
 
@@ -35,7 +34,7 @@ def main():
         for line in found_file:
 
             # remove found digest from the digest array
-            found_salt, found_digest, found_password = line.strip().split(',')
+            found_salt, found_digest, found_password, crack_time = line.strip().split(',')
 
             found_salty_digest = found_salt + ',' + found_digest + '\n'
             if found_salty_digest in salty_digests:
@@ -44,8 +43,10 @@ def main():
 
         found_file.close()
 
+    then = time.time()  # Time before the operations start
     new_found = crack_password(dictionary, salty_digests)
-
+    now = time.time()  # Time after it finished
+    print("It took: ", now - then, " seconds to iterate through the entire dictionary and digests.\n")
     with open(args.digests_found, 'a') as found_file:
         for password in new_found:
             found_file.write(password)
@@ -56,6 +57,7 @@ def crack_password(dictonary, digests):
 
     for word in dictonary:
         for line in digests:
+            then = time.time()  # Time before the operations start
 
             salt, digest = line.strip().split(',')
 
@@ -76,11 +78,12 @@ def crack_password(dictonary, digests):
             digest_bytes = bytes.fromhex(digest)
 
             if key == digest_bytes:
-                print('FOUND!\n')
+                elapsed_time = time.time() - then
+
+                print('FOUND!  It took "{}" seconds to crack this password.\n'.format(elapsed_time))
                 found = salt + ',' + digest
                 digests.remove(line)
-                new_found.append(found + ',' + word + '\n')
-
+                new_found.append(found + ',' + word + ',' + str(elapsed_time) + '\n')
                 print('digest: {},\n digest_bytes: {},\n word: {}\n'.format(digest, digest_bytes, word))
 
     return new_found
