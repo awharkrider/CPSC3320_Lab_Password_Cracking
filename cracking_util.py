@@ -11,14 +11,16 @@ def main():
     #  Parse in arguments from the cmd line
     parser = argparse.ArgumentParser(description="Create a master dictionary file with words padded to a length of 8")
     parser.add_argument("word_file", default="words", help="file of words, (defaults to words) ")
-    parser.add_argument("-m", "--master_dictionary_file", metavar='', default="master_dictionary.txt",
+    parser.add_argument("-d", "--master_dictionary_file", metavar='', default="master_dictionary.txt",
                         help="Stores the words of length 8 or words of 5-7 padded to 8 (defaults to master_dictionary.txt)")
+    parser.add_argument("-l", "--word_length_only", metavar='',
+                        help="optional param to limit the words to only those of a particular length before padding.")
 
     args = parser.parse_args()
 
     # read in word_file
 
-    print("Building a master dictionary file from a word file.\n")
+    print("Building a dictionary file from a word file.\n")
 
     master_dictionary = open(args.master_dictionary_file, "w+")  # creating a file if it doesn't exist
 
@@ -28,7 +30,12 @@ def main():
 
             # if the word length is less then 8 add padding
             # NOTE: this could be improved but just doing this for now
+
             word = line.strip()
+            if args.word_length_only:
+                if len(word) != int(args.word_length_only):
+                    continue
+
             if len(word) == 8:
                 print("No padding needed for '{}'".format(word))
                 master_dictionary.write(word + '\n')
