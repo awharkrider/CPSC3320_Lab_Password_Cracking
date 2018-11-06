@@ -15,8 +15,8 @@ def main():
     parser.add_argument("dictionary_file", default="words", help="dictionary file, (defaults to words) ")
     parser.add_argument("passwords_file", default=".awharkrider_digests.csv",
                         help="password file of .csv (defaults to .awharkrider_digests.csv)")
-    parser.add_argument("digests_found", default="digests_found.csv",
-                        help="stores the digests found with matched password (defaults to digests_found.csv)")
+    parser.add_argument("cracked_digests", default="cracked_digests.csv",
+                        help="stores the digests found with matched password (defaults to cracked_digests.csv)")
 
     args = parser.parse_args()
 
@@ -34,12 +34,12 @@ def main():
         for line in passwords:
             salty_digests.append(line)
 
-    with open(args.digests_found, 'r') as found_file:
+    with open(args.cracked_digests, 'r') as found_file:
 
         for line in found_file:
 
             # remove found digest from the digest array
-            found_salt, found_digest, found_password, crack_time = line.strip().split(',')
+            found_salt, found_digest, found_password = line.strip().split(',')
 
             found_salty_digest = found_salt + ',' + found_digest + '\n'
             if found_salty_digest in salty_digests:
@@ -88,7 +88,7 @@ def crack_password(dictonary, digests):
                 print('FOUND!  It took "{}" seconds to crack this password.\n'.format(elapsed_time))
                 found = salt + ',' + digest
                 digests.remove(line)
-                new_found.append(found + ',' + word + ',' + str(elapsed_time) + '\n')
+                new_found.append(found + ',' + word + '\n')
                 print('digest: {},\n digest_bytes: {},\n word: {}\n'.format(digest, digest_bytes, word))
 
     return new_found
