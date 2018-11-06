@@ -2,10 +2,7 @@
 @author Aaron Harkrider
 @date 10-29-18
 
-version 3.0.0
-    * reduced clutter
-    * improved runtime
-    * default argparse params
+version 3.1.0
 """
 
 from cryptography.hazmat.primitives import hashes
@@ -20,20 +17,23 @@ def main():
 
     #  Parse in arguments from the cmd line
     parser = argparse.ArgumentParser()
-    parser.add_argument("cracked_digests", default="cracked_digests.csv",
-                        help="stores the digests found with matched password (defaults to cracked_digests.csv)")
-    parser.add_argument('-p', '--passwords_file', default=".awharkrider_digests.csv",
-                        help="password file of .csv (defaults to .awharkrider_digests.csv)")
-    parser.add_argument('-d', "--dictionary_file", default="master_dictionary.txt",
-                        help="dictionary file, (defaults to master_dictionary.txt) ")
+    parser.add_argument("dictionary_file", default="master_dictionary.txt",
+                        help="File of dictionary words to use to crack the digests, "
+                             "(Default to master_dictionary.txt)")
+    parser.add_argument("-c", "--cracked_digests", default="master_cracked_digests.csv",
+                        help="stores the digests found with matched password, "
+                             "(Defaults to master_cracked_digests.csv)")
+    parser.add_argument('-u', '--uncracked_digests', default="uncracked_digests.csv",
+                        help="File of un-cracked password digests, "
+                             "(Defaults to uncracked_digests.csv)")
 
     args = parser.parse_args()
 
-    print("Reading in digests")
-    # Read in passwords description file
+    print("Reading in un-cracked password digests")
+    # Read in the un-cracked password digests from file
     salty_digests = []
-    with open(args.passwords_file) as passwords:
-        for line in passwords:
+    with open(args.uncracked_digests) as digests:
+        for line in digests:
             salty_digests.append(line)
 
     found_passwords = []
@@ -42,7 +42,7 @@ def main():
         # remove found digest from the digest array
         print("...Improving search time by removing already cracked digests.\n")
         for line in found_file:
-            found_salt, found_digest, found_password = line.strip().split(',')
+            found_password, found_salt, found_digest = line.strip().split(',')
 
             # saving found passwords so we can skip words in our dictionary if we already cracked them
             found_passwords.append(found_password)
@@ -56,13 +56,21 @@ def main():
     print("Starting password brute force search!\n")
     then = time.time()  # Time before the operations start
 
+    print("Opening dictionary: ", args.dictionary_file)
     # read in dictionary_file
     with open(args.dictionary_file) as dict_file:
+
+        f_letter = "-"
+
         for line in dict_file:
             word = line.strip()
             if word in found_passwords:
                 # Word already cracked moving on
                 continue
+
+            if not word.startswith(f_letter):
+                f_letter = word[0]
+                print("Starting the '{}' words\n".format(f_letter))
 
             # attempting to crack
             for digest_line in salty_digests:
@@ -88,14 +96,14 @@ def main():
                 # check if we found a match
                 if key == digest_bytes:
                     print('FOUND digest for {}.\n'.format(word))
-                    print('digest: {},\n digest_bytes: {},\n word: {}\n'.format(digest, digest_bytes, word))
-                    cracked = salt + ',' + digest
+                    cracked = salt + ',' + digest + '\n'
 
+                    print(word + ',' + cracked)
                     with open(args.cracked_digests, 'a+') as cracked_file:
-                        cracked_file.write(cracked + ',' + word + '\n')
+                        cracked_file.write(word + ',' + cracked)
 
                     # removing the cracked digest from search space
-                    salty_digests.remove(cracked + '\n')
+                    salty_digests.remove(cracked)
 
     now = time.time()  # Time after it finished
     print("It took: ", now - then, " seconds to iterate through the entire dictionary and digests.\n")
