@@ -5,6 +5,13 @@ This utils Create a master dictionary file with words padded to a length of 8
 @author Aaron Harkrider
 @date 10-29-18
 
+Change Log updated 11-07-18:
+-renamed
+- improved usability
+- added ability build dictionary subsets by letter
+- Fixed bug: made the word go to lowercase
+    - implemented optional argument to build a dictionary consisting of only the uppercase letters
+
 """
 
 import argparse
