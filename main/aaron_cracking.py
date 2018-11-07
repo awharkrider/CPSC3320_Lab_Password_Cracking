@@ -2,7 +2,12 @@
 @author Aaron Harkrider
 @date 10-29-18
 
-version 3.1.0
+
+
+Change Log updated 11-07-18:
+- reduced cluttter
+- improved runtime
+- improved usability
 """
 
 from cryptography.hazmat.primitives import hashes
@@ -60,7 +65,7 @@ def main():
     # read in dictionary_file
     with open(args.dictionary_file) as dict_file:
 
-        f_letter = "-"
+        first_letter = "-"
 
         for line in dict_file:
             word = line.strip()
@@ -68,9 +73,9 @@ def main():
                 # Word already cracked moving on
                 continue
 
-            if not word.startswith(f_letter):
-                f_letter = word[0]
-                print("Starting the '{}' words\n".format(f_letter))
+            if not word.startswith(first_letter):
+                first_letter = word[0]
+                print("Starting the '{}' words\n".format(first_letter))
 
             # attempting to crack
             for digest_line in salty_digests:
